@@ -1,0 +1,26 @@
+[
+   {
+      "EmployeeID":17,
+      "PersonnelID":1111,
+      "EmployeeFullName":"Employee_1",
+      "Gender":null,
+      "DateOfBirth":null,
+      "IsStaffMember":true
+   },
+   {
+      "EmployeeID":21333,
+      "PersonnelID":2233,
+      "EmployeeFullName":"adasda",
+      "Gender":null,
+      "DateOfBirth":null,
+      "IsStaffMember":true
+   },
+   {
+      "EmployeeID":22,
+      "PersonnelID":324,
+      "EmployeeFullName":"adadas",
+      "Gender":null,
+      "DateOfBirth":null,
+      "IsStaffMember":false
+   }
+]
