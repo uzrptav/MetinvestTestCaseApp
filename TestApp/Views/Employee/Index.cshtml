@@ -8,7 +8,6 @@
         if (row) {
             $.messager.confirm('Confirm', 'Are you sure you want to delete this employee?', function (r) {
                 if (r) {
-
                     $.ajax({
                         url: "/Employee/RemoveEmployee",
                         type: 'post',
@@ -18,7 +17,7 @@
                         success: function (data) {
                             if (data == "Success") {
                                 $("#dg").datagrid('reload');
-                                $.messager.alert('Success', data, 'info');
+                               /* $.messager.alert('Success', data, 'info');*/
                             }
                             else $.messager.alert('Error', 'Error！', 'info');
                         },
@@ -33,16 +32,16 @@
 </script>
 
 @*<form id="upload" enctype="multipart/form-data" action="@Url.Action("UploadFile", "Employee")" method="POST">
-    <input type="file" name="fileUpload" id="fileUpload" accept=".json" /><br />
-    <button>Upload!</button>
-</form>*@
+        <input type="file" name="fileUpload" id="fileUpload" accept=".json" /><br />
+        <button>Upload!</button>
+    </form>*@
 
 <script>
     function uploadJsonFile() {
         $('#dlgJsonFile').dialog('open').dialog('setTitle', 'Upload Json file');
+
+        //$('#tb').dialog('open').dialog('setTitle', 'Upload Json file');
     }
-
-
     $('#upload').submit(function (e) {
         e.preventDefault(); // stop the standard form submission
 
@@ -55,11 +54,12 @@
             processData: false,
             success: function (data) {
                 console.log(data.UploadedFileCount + ' file(s) uploaded successfully');
-                $('#dlgJsonFile').dialog('close');      // close the dialog
+                //$('#dlgJsonFile').dialog('close');      // close the dialog
                 $('#dg').datagrid('reload');            // reload the user data
             },
             error: function (xhr, error, status) {
                 console.log(error, status);
+                return;
             }
         });
     });
@@ -83,7 +83,7 @@
 </table>
 <div id="toolbar">
     <a href="#" class="easyui-linkbutton" iconCls="icon-add" plain="true" onclick="newEmployee()">New Employee</a>
-    <a href="#" class="easyui-linkbutton" iconCls="icon-add" plain="true" onclick="uploadJsonFile()">Upload File</a>
+    @*<a href="#" class="easyui-linkbutton" iconCls="icon-add" plain="true" onclick="uploadJsonFile()">Upload File</a>*@
     <a href="#" class="easyui-linkbutton" iconCls="icon-edit" plain="true" onclick="editEmployee()">Edit Employee</a>
     <a href="#" class="easyui-linkbutton" iconCls="icon-remove" plain="true" onclick="removeEmployee()">Remove Employee</a>
 </div>
@@ -93,16 +93,16 @@
 
     <form id="fm" method="post" novalidate>
         <div class="fitem" style="margin-bottom:20px">
-            <input type=hidden name="EmployeeID" class="easyui-textbox" required="true">
+            <input type=hidden name="EmployeeID" class="easyui-textbox">
         </div>
 
         <div class="fitem" style="margin-bottom:20px">
             <label>Personnel ID:</label>
-            <input name="PersonnelID" class="easyui-textbox" required="true">
+            <input name="PersonnelID" class="easyui-textbox">
         </div>
         <div class="fitem" style="margin-bottom:20px">
             <label>Employee Full Name:</label>
-            <input name="EmployeeFullName" class="easyui-textbox" required="true">
+            <input name="EmployeeFullName" class="easyui-textbox">
         </div>
         <div class="fitem" style="margin-bottom:20px">
             <label>Date Of Birth</label>
@@ -121,13 +121,36 @@
     <a href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-cancel" onclick="javascript:$('#dlg').dialog('close')" style="width:90px">Cancel</a>
 </div>
 
+
+
 <div id="dlgJsonFile" class="easyui-dialog" style="width:400px;height:320px;padding:10px 20px"
      closed="true" buttons="#dlg-buttons">
 
-    <form id="upload" enctype="multipart/form-data" action="@Url.Action("UploadFile", "Employee")" method="POST">
+    @*<form id="upload" enctype="multipart/form-data" action="@Url.Action("UploadFile", "Employee")" method="POST">
         <input type="file" name="fileUpload" id="fileUpload" accept=".json" /><br />
         <button>Upload!</button>
-    </form>
+    </form>*@
+
+    <div id="tb" style="padding:5px;height:auto">
+        <!-------------------------------Search box----------------------------------->
+        <fieldset>
+            <legend>Load Employee from JSON file</legend>
+            <form id="ffSearch" method="post" enctype="multipart/form-data">
+                <div title="Load Employee from JSON file" style="padding: 5px" data-options="iconCls:'icon-key'">
+                    <input class="easyui-validatebox" type="hidden" id="AttachGUID" name="AttachGUID" />
+                    <br />
+                    <input class="easyui-filebox" id="file_upload" style="width:300px" />
+                </div>
+            </form>
+            <div id="div_files"></div>
+        </fieldset>
+
+        <!-------------------------------Detail display form----------------------------------->
+        <table id="grid" title="User operation" data-options="iconCls:'icon-view'">
+        </table>
+    </div>
+
+
 
 </div>
 <div id="dlg-buttons">
@@ -137,7 +160,6 @@
 
 <script>
     var url;
-
     var employeeId;
     var params = {
         EmployeeID: '',
@@ -146,36 +168,64 @@
         DateOfBirth: '',
         IsStaffMember: '',
     };
-
     function newEmployee() {
         $('#dlg').dialog('open').dialog('setTitle', 'New Employee');
         $('#fm').form('clear');
+        employeeId = undefined;
         url = '/Employee/SaveEmployee';
+        console.log('employeeId = ' + employeeId + ' url = ' + url);
     }
-
     function editEmployee() {
         var row = $('#dg').datagrid('getSelected');
         if (row) {
-
             $('#dlg').dialog('open').dialog('setTitle', 'Edit User');
             $('#fm').form('load', row);
             employeeId = row.EmployeeID;
             url = '/Employee/EditEmployee?id=' + row.EmployeeID;
         }
     }
-
     function saveUser() {
         $('#fm').form('submit', {
             url: url,
+
             onSubmit: function (param) {
+
                 params.EmployeeID = employeeId;
                 params.PersonnelID = param.PersonnelID;
                 params.EmployeeFullName = param.EmployeeFullName;
                 params.DateOfBirth = param.DateOfBirth;
                 params.IsStaffMember = param.IsStaffMember;
+
+
+                $.ajax({
+                    url: url,
+                    type: this.method,
+                    data: new FormData(this),
+                    cache: false,
+                    contentType: false,
+                    processData: false,
+                    success: function (data) {
+                        console.log(data.UploadedFileCount + ' ajax called successfully');
+                        console.log('params.EmployeeFullName = ' + params.EmployeeFullName);
+                        $('#dlg').dialog('close');        // close the dialog
+                        $('#dg').datagrid('reload');    // reload the user data
+                    },
+                    error: function (xhr, error, status) {
+                        $('#dlg').
+                        console.log(error, status);
+                    }
+                });
+
+
+
+                console.log('employeeId = ' + employeeId + ' url = ' + url);
+
                 return $(this).form('validate');
             },
             success: function (result) {
+
+                console.log('result = ' + result);
+
                 var result = eval('(' + result + ')');
                 if (result.errorMsg) {
                     $.messager.show({
@@ -188,5 +238,101 @@
                 }
             }
         });
+    }
+</script>
+
+
+<div id="tb" style="padding:5px;height:auto">
+    <!-------------------------------Search box----------------------------------->
+    <fieldset>
+        <legend>Load Employee from JSON file</legend>
+        <form id="ffSearch" method="post" enctype="multipart/form-data">
+            <div title="Load Employee from JSON file" style="padding: 5px" data-options="iconCls:'icon-key'">
+                <input class="easyui-validatebox" type="hidden" id="AttachGUID" name="AttachGUID" />
+                <br />
+                <input class="easyui-filebox" id="file_upload" style="width:300px" />
+            </div>
+        </form>
+        <div id="div_files"></div>
+    </fieldset>
+
+    <!-------------------------------Detail display form----------------------------------->
+    <table id="grid" title="User operation" data-options="iconCls:'icon-view'">
+    </table>
+</div>
+
+
+<script type="text/javascript">
+
+    $(function () {
+        //Add dialog box, upload control initialization
+        $('#file_upload').filebox({
+            buttonText: 'Select file',  //Button text
+            buttonAlign: 'right',   //Button alignment
+            //multiple: true,       //Multi file mode or not
+            //accept: "image/gif,image/bmp,image/jpeg,image/jpg,image/png", //Specify file type
+            onChange: function (e) {
+                UploadFile(this, "file_upload", "AttachGUID", "div_files");//Upload processing
+            }
+        });
+    });
+
+    //Upload file operation
+    function UploadFile(_obj, file_ctrlname, guid_ctrlname, div_files) {
+        var value = $("#" + file_ctrlname).filebox('getValue');
+        var files = $("#" + file_ctrlname).next().find('input[type=file]')[0].files;
+        //console.log(files);
+
+        var guid = $("#" + guid_ctrlname).val();
+        if (value && files[0]) {
+            //Construct a FormData Store complex objects
+            var formData = new FormData();
+            formData.append("folder", 'Data import file');
+            formData.append("guid", guid);
+            formData.append('Filedata', files[0]);//The default file data name is“ Filedata"
+
+            $.ajax({
+                url: '/Employee/UploadFile', //Single file upload
+                type: 'POST',
+                processData: false,
+                contentType: false,
+                data: formData,
+                success: function (json) {
+
+                    console.log(' ajax called successfully');
+                    console.log('json = ' + json );
+
+                    $('#dg').datagrid('reload');            // reload the user data
+
+                    $.messager.alert('Success', 'File uploaded, data loaded!', 'info');
+
+                    //Convert JSON Array to string.
+                    var jsonStr = JSON.stringify(json);
+
+                    //Convert JSON string to BLOB.
+                    jsonStr = [jsonStr];
+                    var blob1 = new Blob(jsonStr, { type: "text/plain;charset=utf-8" });
+
+                    //Check the Browser.
+                    var isIE = false || !!document.documentMode;
+                    if (isIE) {
+                        window.navigator.msSaveBlob(blob1, "Customers.txt");
+                    } else {
+                        var url = window.URL || window.webkitURL;
+                        link = url.createObjectURL(blob1);
+                        var a = $("<a />");
+                        a.attr("download", "LoadFromFileInfo.txt");
+                        a.attr("href", link);
+                        $("body").append(a);
+                        a[0].click();
+                        $("body").remove(a);
+                    }
+
+                },
+                error: function (xhr, status, error) {
+                    $.messager.alert("Tips", "operation failed"); //xhr.responseText
+                }
+            });
+        }
     }
 </script>

@@ -9,7 +9,7 @@ namespace TestApp.DAL
 {
     public class Employee: IValidatableObject
     {
-        DateTime _dateOfBirth;
+        private DateTime _dateOfBirth;
         public int EmployeeID { get; set; }
         public string PersonnelID { get; set; }
         public string EmployeeFullName { get; set; }
@@ -17,23 +17,41 @@ namespace TestApp.DAL
         public string DateOfBirth { get; set; }
         public bool IsStaffMember { get; set; }
 
+        public string GetValidateReport()
+        {
+            var validationResults = Validate(new ValidationContext(this));
+            if (validationResults.Count() == 0)
+                return String.Empty;
+
+            StringBuilder sb = new StringBuilder();
+
+            foreach (var validationItem in validationResults)
+            {
+                sb.AppendLine($"{validationItem.MemberNames.First()} : {validationItem.ErrorMessage}");
+            }
+
+            return sb.ToString();
+        }
+
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
-        {       
+        {
+
+            if (string.IsNullOrEmpty(EmployeeFullName))
+                yield return new ValidationResult("ФИО сотрудника не указано", new string[] { "EmployeeFullName" });
 
             if (IsStaffMember && string.IsNullOrEmpty(PersonnelID))
-                yield return new ValidationResult("Табельный номер обязателен для сотрудников в штате");
+                yield return new ValidationResult("Табельный номер обязателен для сотрудников в штате", new string[] { "PersonnelID" });
 
-            if (string.IsNullOrEmpty(DateOfBirth) && !DateTime.TryParse(DateOfBirth, out _dateOfBirth))
+            if (!string.IsNullOrEmpty(DateOfBirth) && !DateTime.TryParse(DateOfBirth, out _dateOfBirth))
             {
                 DateOfBirth = _dateOfBirth.ToShortDateString();
-                yield return new ValidationResult("Неверный формат Даты рождения");
+                yield return new ValidationResult("Неверный формат Даты рождения", new string[] { "DateOfBirth" });
             }
 
-            if (string.IsNullOrEmpty(PersonnelID) && !DateTime.TryParse(DateOfBirth, out _dateOfBirth) && (_dateOfBirth >= _dateOfBirth.AddYears(-18) ))
+            if (!string.IsNullOrEmpty(DateOfBirth) && !DateTime.TryParse(DateOfBirth, out _dateOfBirth) && (_dateOfBirth >= _dateOfBirth.AddYears(-18)))
             {
-                yield return new ValidationResult("Сотрудник должен быть совершеннолетним");
+                yield return new ValidationResult("Сотрудник должен быть совершеннолетним", new string[] { "DateOfBirth" });
             }
-
         }
     }
 }

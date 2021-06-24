@@ -1,15 +1,19 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Data;
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using System.Web.Script.Serialization;
 using TestApp.DAL;
+using TestApp.Helpers;
+using TestApp.Models;
 
 namespace TestApp.Controllers
 {
@@ -20,16 +24,20 @@ namespace TestApp.Controllers
 
         public EmployeeController()
         {
+            //TODO move to Global.asax file
+            Database.SetInitializer<EmployeeContext>(new DropCreateDatabaseAlways<EmployeeContext>());
+
             if (context.Employees.Any())
                 return;
 
+            //Populate Employee table
             for (int i = 1; i < 5; i++)
             {
                 var emp = new Employee
                 {
-                    PersonnelID = i,
+                    PersonnelID = Convert.ToString(i),
                     EmployeeFullName = $"Employee_{i}",
-                    DateOfBirth = DateTime.Now.AddYears(-20),
+                    DateOfBirth = Convert.ToString( DateTime.Now.AddYears(-20) ),
                     Gender = "male",
                     IsStaffMember = true
                 };
@@ -39,12 +47,13 @@ namespace TestApp.Controllers
             }
         }
 
-        // GET: Employee
+        /// <summary>
+        /// Retrieve Employee collection or concrete entity
+        /// </summary>
+        /// <param name="id">Employee inner identifier</param>
+        /// <returns></returns>
         public ActionResult Index(int id = 0)
-        {
-            //return Json(new { status = "success", message = "customer created" }, JsonRequestBehavior.AllowGet);
-
-            // получаем из бд все объекты Employee
+        {           
             IEnumerable<Employee> employees = null;
             if (id > 0)
             {
@@ -52,18 +61,16 @@ namespace TestApp.Controllers
             }
             else
             { employees = context.Employees; }
-                
-                
-            // передаем все объекты в динамическое свойство Employees в ViewBag
-            ViewBag.Employees = employees;
 
             return View();
         }
 
+        /// <summary>
+        /// Generate json string for populate grid 
+        /// </summary>
+        /// <returns></returns>
         public ActionResult EmployeeJSON()
         {
-            //return Json(new { status = "success", message = "customer created" }, JsonRequestBehavior.AllowGet);
-
             // получаем из бд все объекты Employee
             IEnumerable<Employee> employees = context.Employees;
             // передаем все объекты в динамическое свойство Employees в ViewBag
@@ -73,7 +80,12 @@ namespace TestApp.Controllers
             // возвращаем представление
             return Content(JsonConvert.SerializeObject(employees), "application/json");
         }
-       
+
+        /// <summary>
+        /// Delete Employee by inner identifier
+        /// </summary>
+        /// <param name="id">Employee inner identifier</param>
+        /// <returns></returns>
         [HttpPost]
         public ActionResult RemoveEmployee(int id = 0)
         {
@@ -81,32 +93,58 @@ namespace TestApp.Controllers
             context.Entry(employee).State = EntityState.Deleted;
             context.SaveChanges();
 
-            return Content("Success");
-        }
-
-        public ActionResult SaveEmployee(Employee employee)
-        {
-            //TODO save new item
-            context.Entry(employee).State = EntityState.Added;
-            context.SaveChanges();
-
             ResultState resultState = new ResultState();
             resultState.IsSuccess = true;
             resultState.Message = "Success";
             return Json(resultState);
         }
 
-        public ActionResult EditEmployee(Employee employee)
+        /// <summary>
+        /// Save new Enployee record
+        /// </summary>
+        /// <param name="employee">New Employee entity</param>
+        /// <returns></returns>
+        public ActionResult SaveEmployee(Employee employee)
         {
             //TODO save new item
+            ResultState resultState = new ResultState();
+
+            context.Entry(employee).State = EntityState.Added;
+
+            string report = employee.GetValidateReport();
+
+            if (String.IsNullOrEmpty(report) )
+            {
+                context.SaveChanges();
+                resultState.IsSuccess = true;
+                resultState.Message = "Success";
+            }
+            else
+            {
+                resultState.IsSuccess = false;
+                resultState.Message = report;
+            }
+            
+
+            
+            
+            return Json(resultState);
+        }
+
+        /// <summary>
+        /// Edit existing Employee
+        /// </summary>
+        /// <param name="employee">Selected Employee to edit</param>
+        /// <returns></returns>
+        public ActionResult EditEmployee(Employee employee)
+        {
+            //TODO save edited item
             //var employee = context.Employees.Where(t => t.EmployeeID == id).First();
 
             context.Entry(employee).State = EntityState.Modified;
             context.SaveChanges();
 
-            //return Content("Success");
-
-            
+            //return Content("Success");            
 
             ResultState resultState = new ResultState();
             resultState.IsSuccess = true;
@@ -114,35 +152,86 @@ namespace TestApp.Controllers
             return Json(resultState);
         }
 
-        public JsonResult UploadFile()
+        /// <summary>
+        /// Upload file with serialized Employee collection
+        /// </summary>
+        /// <returns></returns>
+        public ActionResult UploadFile()
         {
+            string loadingResult = String.Empty;
             for (int i = 0; i < Request.Files.Count; i++)
             {
                 var file = Request.Files[i];
                 //TODO save file here or read InputStream
 
-                BinaryReader b = new BinaryReader(file.InputStream);
-                byte[] binData = b.ReadBytes(file.ContentLength);
+                FileLoader fileLoader = new FileLoader(file.InputStream, file.ContentLength);
+             
+                string jsonString = fileLoader.GetTextData();
 
-                string jsonString = System.Text.Encoding.UTF8.GetString(binData);
+                JavaScriptSerializer serializer = new JavaScriptSerializer();
+                List<Employee> employees = serializer.Deserialize<List<Employee>>(jsonString);
 
-                JavaScriptSerializer oSerializer = new JavaScriptSerializer();
-                List<Employee> employees = oSerializer.Deserialize<List<Employee>>(jsonString);
-                SaveEmployee(employees);
+                loadingResult = SaveEmployeeFromList(employees);               
 
             }
-            return Json(new { UploadedFileCount = Request.Files.Count });
+            return Json(loadingResult , JsonRequestBehavior.AllowGet);
+
+            ResultState resultState = new ResultState();
+            resultState.IsSuccess = true;
+            resultState.Message = "Success";
+
+            //return Redirect("/Employee/Index");
+            return Json(resultState);
         }
 
-        private void SaveEmployee(List<Employee> employees)
+
+        /// <summary>
+        /// Save list into Employee table
+        /// </summary>
+        /// <param name="employees">Employee collection</param>
+        private string SaveEmployeeFromList(List<Employee> employees)
         {
+            //TODO Move to Repository
+            List<LoadingResult> loadingResults = new List<LoadingResult>();
+            StringBuilder sb = new StringBuilder();
 
             foreach (var emp in employees)
             {
-                var employee = context.Employees.Where(t => t.EmployeeID == id).First();
+                bool alreadyExists = false;
+                string report = emp.GetValidateReport();
+                var existedEntity = context.Employees
+                    .Where(t => t.PersonnelID == emp.PersonnelID
+                                && t.IsStaffMember == emp.IsStaffMember
+                          )?.FirstOrDefault();
+
+                if (existedEntity != null)
+                { alreadyExists = true; }
+
+                if (alreadyExists)
+                {
+                    context.Entry(existedEntity).State = EntityState.Modified;
+                }
+
+                if (String.IsNullOrEmpty(report))
+                {
+                    if (!alreadyExists)
+                    { context.Employees.Add(emp); }
+
+                    context.SaveChanges();
+                }
+
+                LoadingResult result = new LoadingResult
+                {
+                    Entity = $"{emp.PersonnelID}|{emp.EmployeeFullName}|{emp.DateOfBirth}|{emp.Gender}|{emp.IsStaffMember}|",
+                    AlreadyExists = alreadyExists,
+                    ErrorMessage = report
+                };
+
+                loadingResults.Add(result);
             }
-            context.Employees.Add(emp);
-            context.SaveChanges();
+
+            return loadingResults.ToJSON();
+            //context.SaveChanges();
         }
     }
 
