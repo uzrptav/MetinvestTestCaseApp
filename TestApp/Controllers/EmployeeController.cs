@@ -24,9 +24,6 @@ namespace TestApp.Controllers
 
         public EmployeeController()
         {
-            //TODO move to Global.asax file
-            Database.SetInitializer<EmployeeContext>(new DropCreateDatabaseAlways<EmployeeContext>());
-
             if (context.Employees.Any())
                 return;
 
