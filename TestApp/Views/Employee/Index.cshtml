@@ -88,30 +88,29 @@
     <a href="#" class="easyui-linkbutton" iconCls="icon-remove" plain="true" onclick="removeEmployee()">Remove Employee</a>
 </div>
 
-<div id="dlg" class="easyui-dialog" style="width:400px;height:320px;padding:10px 20px"
+<div id="dlg" class="easyui-dialog" style="width:300px;height:350px;padding:10px 20px"
      closed="true" buttons="#dlg-buttons">
 
     <form id="fm" method="post" novalidate>
-        <div class="fitem" style="margin-bottom:20px">
+        <div class="fitem" type=hidden>
             <input type=hidden name="EmployeeID" class="easyui-textbox">
         </div>
 
-        <div class="fitem" style="margin-bottom:20px">
-            <label>Personnel ID:</label>
-            <input name="PersonnelID" class="easyui-textbox">
+        <div class="fitem" style="margin-bottom:10px">
+            @*<label>Personnel ID:</label>*@
+            <input name="PersonnelID" class="easyui-textbox" labelPosition="top"  label="Personnel ID:">
         </div>
-        <div class="fitem" style="margin-bottom:20px">
-            <label>Employee Full Name:</label>
-            <input name="EmployeeFullName" class="easyui-textbox">
+        <div class="fitem" style="margin-bottom:10px">
+            @*<label>Employee Full Name:</label>*@
+            <input name="EmployeeFullName" class="easyui-textbox" labelPosition="top" label="Employee Full Name:">
         </div>
-        <div class="fitem" style="margin-bottom:20px">
-            <label>Date Of Birth</label>
-            <input name="DateOfBirth:" class="easyui-textbox">
+        <div class="fitem" style="margin-bottom:10px">
+            @*<label>Date Of Birth:</label>*@
+            <input name="DateOfBirth:" class="easyui-textbox" labelPosition="top" label="Date Of Birth:">
         </div>
-        <div class="fitem" style="margin-bottom:20px">
-            <label>Is Staff Member</label>
-
-            <input class="easyui-checkbox" name="IsStaffMember" value="true">
+        <div class="fitem" style="margin-bottom:10px">
+            @*<label>Is Staff Member</label>*@
+            <input class="easyui-checkbox" name="IsStaffMember" value="true" labelPosition="before" label="Is Staff Member">
         </div>
     </form>
 </div>
@@ -197,24 +196,24 @@
                 params.IsStaffMember = param.IsStaffMember;
 
 
-                $.ajax({
-                    url: url,
-                    type: this.method,
-                    data: new FormData(this),
-                    cache: false,
-                    contentType: false,
-                    processData: false,
-                    success: function (data) {
-                        console.log(data.UploadedFileCount + ' ajax called successfully');
-                        console.log('params.EmployeeFullName = ' + params.EmployeeFullName);
-                        $('#dlg').dialog('close');        // close the dialog
-                        $('#dg').datagrid('reload');    // reload the user data
-                    },
-                    error: function (xhr, error, status) {
-                        $('#dlg').
-                        console.log(error, status);
-                    }
-                });
+                //$.ajax({
+                //    url: url,
+                //    type: this.method,
+                //    data: new FormData(this),
+                //    cache: false,
+                //    contentType: false,
+                //    processData: false,
+                //    success: function (data) {
+                //        console.log(data.UploadedFileCount + ' ajax called successfully');
+                //        console.log('params.EmployeeFullName = ' + params.EmployeeFullName);
+                //        $('#dlg').dialog('close');        // close the dialog
+                //        $('#dg').datagrid('reload');    // reload the user data
+                //    },
+                //    error: function (xhr, error, status) {
+                //        $('#dlg').
+                //        console.log(error, status);
+                //    }
+                //});
 
 
 
@@ -243,7 +242,7 @@
 
 
 <div id="tb" style="padding:5px;height:auto">
-    <!-------------------------------Search box----------------------------------->
+    <!-------------------------------File box----------------------------------->
     <fieldset>
         <legend>Load Employee from JSON file</legend>
         <form id="ffSearch" method="post" enctype="multipart/form-data">
