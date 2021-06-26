@@ -72,8 +72,8 @@ namespace TestApp.Controllers
             IEnumerable<Employee> employees = context.Employees;
             // передаем все объекты в динамическое свойство Employees в ViewBag
             //ViewBag.Employees = employees;
+            //
 
-            var result = Content(JsonConvert.SerializeObject(employees), "application/json");
             // возвращаем представление
             return Content(JsonConvert.SerializeObject(employees), "application/json");
         }
@@ -171,14 +171,7 @@ namespace TestApp.Controllers
                 loadingResult = SaveEmployeeFromList(employees);               
 
             }
-            return Json(loadingResult , JsonRequestBehavior.AllowGet);
-
-            ResultState resultState = new ResultState();
-            resultState.IsSuccess = true;
-            resultState.Message = "Success";
-
-            //return Redirect("/Employee/Index");
-            return Json(resultState);
+            return Content(loadingResult);
         }
 
 

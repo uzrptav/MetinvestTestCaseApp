@@ -17,7 +17,7 @@
                         success: function (data) {
                             if (data == "Success") {
                                 $("#dg").datagrid('reload');
-                               /* $.messager.alert('Success', data, 'info');*/
+                                /* $.messager.alert('Success', data, 'info');*/
                             }
                             else $.messager.alert('Error', 'Error！', 'info');
                         },
@@ -98,7 +98,7 @@
 
         <div class="fitem" style="margin-bottom:10px">
             @*<label>Personnel ID:</label>*@
-            <input name="PersonnelID" class="easyui-textbox" labelPosition="top"  label="Personnel ID:">
+            <input name="PersonnelID" class="easyui-textbox" labelPosition="top" label="Personnel ID:">
         </div>
         <div class="fitem" style="margin-bottom:10px">
             @*<label>Employee Full Name:</label>*@
@@ -126,9 +126,9 @@
      closed="true" buttons="#dlg-buttons">
 
     @*<form id="upload" enctype="multipart/form-data" action="@Url.Action("UploadFile", "Employee")" method="POST">
-        <input type="file" name="fileUpload" id="fileUpload" accept=".json" /><br />
-        <button>Upload!</button>
-    </form>*@
+            <input type="file" name="fileUpload" id="fileUpload" accept=".json" /><br />
+            <button>Upload!</button>
+        </form>*@
 
     <div id="tb" style="padding:5px;height:auto">
         <!-------------------------------Search box----------------------------------->
@@ -280,7 +280,8 @@
     function UploadFile(_obj, file_ctrlname, guid_ctrlname, div_files) {
         var value = $("#" + file_ctrlname).filebox('getValue');
         var files = $("#" + file_ctrlname).next().find('input[type=file]')[0].files;
-        //console.log(files);
+        var fileName = files[0].name;
+        //console.log(files[0].name);
 
         var guid = $("#" + guid_ctrlname).val();
         if (value && files[0]) {
@@ -289,6 +290,8 @@
             formData.append("folder", 'Data import file');
             formData.append("guid", guid);
             formData.append('Filedata', files[0]);//The default file data name is“ Filedata"
+
+            $("#dgFileLoadingResult").title = fileName;
 
             $.ajax({
                 url: '/Employee/UploadFile', //Single file upload
@@ -299,11 +302,14 @@
                 success: function (json) {
 
                     console.log(' ajax called successfully');
-                    console.log('json = ' + json );
+                    console.log('json = ' + json);
 
                     $('#dg').datagrid('reload');            // reload the user data
 
                     $.messager.alert('Success', 'File uploaded, data loaded!', 'info');
+
+                    //Fill log to grid
+                    $('#dgFileLoadingResult').datagrid('loadData', JSON.parse(json));
 
                     //Convert JSON Array to string.
                     var jsonStr = JSON.stringify(json);
@@ -335,3 +341,52 @@
         }
     }
 </script>
+
+
+
+<table id="dgFileLoadingResult" title="Loading result" class="easyui-datagrid"
+       fitColumns="true"
+       rownumbers="true"
+       toolbar ="#tbFileLoadingResult"
+       singleSelect="true"
+       >
+    <thead>
+        <tr>
+            <th data-options="field:'Entity',width:120">Employee data</th>
+            <th data-options="field:'AlreadyExists',width:60">Record alredy exists</th>
+            <th data-options="field:'ErrorMessage',width:120,align:'right'">Error message</th>          
+        </tr>
+    </thead>
+</table>
+
+<div id="tbFileLoadingResult">
+    <a href="#" class="easyui-linkbutton" iconCls="icon-save" plain="true" onclick="saveLoadingResult()">Save to xls</a>
+</div>
+
+<script>
+
+
+    function saveLoadingResult() {
+
+        $('#dgFileLoadingResult').datagrid('toExcel', 'datagrid.xls');
+    }
+</script>>
+
+@*<div id="tb" style="padding:5px;height:auto">
+    <div style="margin-bottom:5px">
+        <a href="#" class="easyui-linkbutton" iconCls="icon-add" plain="true"></a>
+        <a href="#" class="easyui-linkbutton" iconCls="icon-edit" plain="true"></a>
+        <a href="#" class="easyui-linkbutton" iconCls="icon-save" plain="true"></a>
+        <a href="#" class="easyui-linkbutton" iconCls="icon-cut" plain="true"></a>
+        <a href="#" class="easyui-linkbutton" iconCls="icon-remove" plain="true"></a>
+    </div>
+    <div>
+        Date From: <input class="easyui-datebox" style="width:80px">
+        To: <input class="easyui-datebox" style="width:80px">
+        Language:
+        <input class="easyui-combobox" style="width:100px"
+               url="data/combobox_data.json"
+               valueField="id" textField="text">
+        <a href="#" class="easyui-linkbutton" iconCls="icon-search">Search</a>
+    </div>
+</div>*@

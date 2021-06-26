@@ -41,20 +41,25 @@
 
 <html>
 
-    <link rel="stylesheet" type="text/css" href="~/Content/jquery-easyui-1.9.15/themes/default/easyui.css">
-    <link rel="stylesheet" type="text/css" href="~/Content/jquery-easyui-1.9.15/themes/icon.css">
-    <link rel="stylesheet" type="text/css" href="~/Content/jquery-easyui-1.9.15/demo/demo.css">
-    <script type="text/javascript" src="~/Content/jquery-easyui-1.9.15/jquery.min.js"></script>
-    <script type="text/javascript" src="~/Content/jquery-easyui-1.9.15/jquery.easyui.min.js"></script>
-
-    <body>
+<link rel="stylesheet" type="text/css" href="~/Content/jquery-easyui-1.9.15/themes/default/easyui.css">
+<link rel="stylesheet" type="text/css" href="~/Content/jquery-easyui-1.9.15/themes/icon.css">
+<link rel="stylesheet" type="text/css" href="~/Content/jquery-easyui-1.9.15/demo/demo.css">
 
 
-        @Scripts.Render("~/bundles/jquery")
-        @Scripts.Render("~/bundles/bootstrap")
-        @RenderSection("scripts", required: false)
 
-        @RenderBody()
+<script type="text/javascript" src="~/Content/jquery-easyui-1.9.15/jquery.min.js"></script>
+<script type="text/javascript" src="~/Content/jquery-easyui-1.9.15/jquery.easyui.min.js"></script>
+<script type="text/javascript" src="~/Content/jquery-easyui-1.9.15/extension/datagrid-export.js"></script>
 
-    </body>
+
+<body>
+
+
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/bootstrap")
+    @RenderSection("scripts", required: false)
+
+    @RenderBody()
+
+</body>
 </html>
