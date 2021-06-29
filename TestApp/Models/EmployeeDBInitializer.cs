@@ -5,7 +5,7 @@ using System.Linq;
 using System.Web;
 using TestApp.DAL;
 
-namespace TestApp.Models
+namespace TestApp.DAL
 {
     public class EmployeeDBInitializer: DropCreateDatabaseAlways<EmployeeDBContext>
     {
