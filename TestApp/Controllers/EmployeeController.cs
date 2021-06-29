@@ -20,28 +20,28 @@ namespace TestApp.Controllers
     public class EmployeeController : Controller
     {
 
-        EmployeeContext context = new EmployeeContext();
+        EmployeeDBContext context = new EmployeeDBContext();
 
         public EmployeeController()
         {
-            if (context.Employees.Any())
-                return;
+            //if (context.Employees.Any())
+            //    return;
 
-            //Populate Employee table
-            for (int i = 1; i < 5; i++)
-            {
-                var emp = new Employee
-                {
-                    PersonnelID = Convert.ToString(i),
-                    EmployeeFullName = $"Employee_{i}",
-                    DateOfBirth = Convert.ToString( DateTime.Now.AddYears(-20) ),
-                    Gender = "male",
-                    IsStaffMember = true
-                };
+            ////Populate Employee table
+            //for (int i = 1; i < 5; i++)
+            //{
+            //    var emp = new Employee
+            //    {
+            //        PersonnelID = Convert.ToString(i),
+            //        EmployeeFullName = $"Employee_{i}",
+            //        DateOfBirth = Convert.ToString( DateTime.Now.AddYears(-20) ),
+            //        Gender = "male",
+            //        IsStaffMember = true
+            //    };
 
-                context.Employees.Add(emp);
-                context.SaveChanges();
-            }
+            //    context.Employees.Add(emp);
+            //    context.SaveChanges();
+            //}
         }
 
         /// <summary>
