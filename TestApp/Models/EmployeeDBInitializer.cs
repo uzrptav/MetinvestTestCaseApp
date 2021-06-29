@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data.Entity;
-using System.Linq;
-using System.Web;
-using TestApp.DAL;
 
 namespace TestApp.DAL
 {
@@ -20,7 +17,8 @@ namespace TestApp.DAL
                 {
                     PersonnelID = Convert.ToString(i),
                     EmployeeFullName = $"Employee_{i}",
-                    DateOfBirth = Convert.ToString(DateTime.Now.AddYears(-20)),
+                    //DateOfBirth = Convert.ToString(DateTime.Now.AddYears(-20)),
+                    DateOfBirth = DateTime.Now.AddYears(-20),
                     Gender = "male",
                     IsStaffMember = true
                 };

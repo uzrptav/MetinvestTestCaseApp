@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -14,7 +15,9 @@ namespace TestApp.DAL
         public string PersonnelID { get; set; }
         public string EmployeeFullName { get; set; }
         public string Gender { get; set; }
-        public string DateOfBirth { get; set; }
+
+        [Column(TypeName = "datetime2")]
+        public DateTime? DateOfBirth { get; set; }
         public bool IsStaffMember { get; set; }
 
         public string GetValidateReport()
@@ -42,16 +45,16 @@ namespace TestApp.DAL
             if (IsStaffMember && string.IsNullOrEmpty(PersonnelID))
                 yield return new ValidationResult("Табельный номер обязателен для сотрудников в штате", new string[] { "PersonnelID" });
 
-            if (!string.IsNullOrEmpty(DateOfBirth) && !DateTime.TryParse(DateOfBirth, out _dateOfBirth))
-            {
-                DateOfBirth = _dateOfBirth.ToShortDateString();
-                yield return new ValidationResult("Неверный формат Даты рождения", new string[] { "DateOfBirth" });
-            }
+            //if (!string.IsNullOrEmpty(DateOfBirth) && !DateTime.TryParse(DateOfBirth, out _dateOfBirth))
+            //{
+            //    DateOfBirth = _dateOfBirth.ToShortDateString();
+            //    yield return new ValidationResult("Неверный формат Даты рождения", new string[] { "DateOfBirth" });
+            //}
 
-            if (!string.IsNullOrEmpty(DateOfBirth) && !DateTime.TryParse(DateOfBirth, out _dateOfBirth) && (_dateOfBirth >= _dateOfBirth.AddYears(-18)))
-            {
-                yield return new ValidationResult("Сотрудник должен быть совершеннолетним", new string[] { "DateOfBirth" });
-            }
+            //if (!string.IsNullOrEmpty(DateOfBirth) && !DateTime.TryParse(DateOfBirth, out _dateOfBirth) && (_dateOfBirth >= _dateOfBirth.AddYears(-18)))
+            //{
+            //    yield return new ValidationResult("Сотрудник должен быть совершеннолетним", new string[] { "DateOfBirth" });
+            //}
         }
     }
 }

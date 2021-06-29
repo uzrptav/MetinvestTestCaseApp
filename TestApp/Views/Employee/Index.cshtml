@@ -124,7 +124,10 @@
         </div>
         <div class="fitem" style="margin-bottom:10px">
             @*<label>Date Of Birth:</label>*@
-            <input name="DateOfBirth:" class="easyui-textbox" labelPosition="top" label="Date Of Birth:">
+            @*<input name="DateOfBirth:" class="easyui-textbox" labelPosition="top" label="Date Of Birth:">*@
+            <input id="dd" name="DateOfBirth" class="easyui-datebox" 
+                    data-options="formatter:myformatter,parser:myparser" 
+                   label="Date Of Birth:" labelPosition="top" style="width:100%;">
         </div>
         <div class="fitem" style="margin-bottom:10px">
             @*<label>Is Staff Member</label>*@
@@ -182,7 +185,7 @@
         EmployeeID: '',
         PersonnelID: '',
         EmployeeFullName: '',
-        DateOfBirth: '',
+        DateOfBirth: null,
         IsStaffMember: '',
     };
     function newEmployee() {
@@ -201,19 +204,51 @@
             url = '/Employee/EditEmployee?id=' + row.EmployeeID;
         }
     }
+
+        function myformatter(date){
+            var y = date.getFullYear();
+            var m = date.getMonth()+1;
+            var d = date.getDate();
+            return y+'-'+(m<10?('0'+m):m)+'-'+(d<10?('0'+d):d);
+        }
+        function myparser(s){
+            if (!s) return new Date();
+            var ss = (s.split('-'));
+            var y = parseInt(ss[0],10);
+            var m = parseInt(ss[1],10);
+            var d = parseInt(ss[2], 10);
+
+            console.log('y = ' + y);
+            console.log('m = ' + m);
+            console.log('d = ' + d);
+
+            if (!isNaN(y) && !isNaN(m) && !isNaN(d)){
+                return new Date(y,m-1,d);
+            } else {
+                return new Date();
+            }
+        }
+
     function saveUser() {
         $('#fm').form('submit', {
             url: url,
 
             onSubmit: function (param) {
 
+                console.log('params.DateOfBirth = ' + param.DateOfBirth);
+                console.log('params.DateOfBirth.val = ' + $("#dd").val());
+                //console.log('params.DateOfBirth.toISOString = ' + new Date(param.DateOfBirth).toISOString());
+
+
                 params.EmployeeID = employeeId;
                 params.PersonnelID = param.PersonnelID;
                 params.EmployeeFullName = param.EmployeeFullName;
-                params.DateOfBirth = param.DateOfBirth;
+                //params.DateOfBirth = new Date(param.DateOfBirth).toISOString();
+                params.DateOfBirth = $("#dd").val();
                 params.IsStaffMember = param.IsStaffMember;
 
                 console.log('employeeId = ' + employeeId + ' url = ' + url);
+               
 
                 return $(this).form('validate');
             },
