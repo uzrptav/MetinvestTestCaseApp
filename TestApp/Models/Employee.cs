@@ -17,7 +17,19 @@ namespace TestApp.DAL
         public string Gender { get; set; }
 
         [Column(TypeName = "datetime2")]
-        public DateTime? DateOfBirth { get; set; }
+        public DateTime? DateOfBirth { 
+            get 
+            {
+                return _dateOfBirth.Date; 
+            }
+            set 
+            {
+                if (value.HasValue)
+                {
+                    _dateOfBirth = value.Value;
+                }               
+            } 
+        }
         public bool IsStaffMember { get; set; }
 
         public string GetValidateReport()
@@ -45,16 +57,15 @@ namespace TestApp.DAL
             if (IsStaffMember && string.IsNullOrEmpty(PersonnelID))
                 yield return new ValidationResult("Табельный номер обязателен для сотрудников в штате", new string[] { "PersonnelID" });
 
-            //if (!string.IsNullOrEmpty(DateOfBirth) && !DateTime.TryParse(DateOfBirth, out _dateOfBirth))
-            //{
-            //    DateOfBirth = _dateOfBirth.ToShortDateString();
-            //    yield return new ValidationResult("Неверный формат Даты рождения", new string[] { "DateOfBirth" });
-            //}
+            if (DateOfBirth.HasValue && (DateOfBirth >= DateTime.Now.AddYears(-18)))
+            {
+                yield return new ValidationResult("Сотрудник должен быть совершеннолетним", new string[] { "DateOfBirth" });
+            }
 
-            //if (!string.IsNullOrEmpty(DateOfBirth) && !DateTime.TryParse(DateOfBirth, out _dateOfBirth) && (_dateOfBirth >= _dateOfBirth.AddYears(-18)))
-            //{
-            //    yield return new ValidationResult("Сотрудник должен быть совершеннолетним", new string[] { "DateOfBirth" });
-            //}
+            if (DateOfBirth.HasValue && (DateOfBirth <= DateTime.Now.AddYears(-60)))
+            {
+                yield return new ValidationResult("Сотрудник должен быть не старше 60 лет", new string[] { "DateOfBirth" });
+            }
         }
     }
 }

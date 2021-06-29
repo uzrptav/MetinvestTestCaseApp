@@ -90,8 +90,8 @@ namespace TestApp.Controllers
             if (employee == null)
             {
                 resultState.IsSuccess = true;
-                resultState.MessageHeader = "Ошибка удаления";
-                resultState.MessageText = "Запись не найдена";
+                resultState.MessageHeader = "Удаление записи";
+                resultState.MessageText   = "Ошибка: Запись не найдена";
                 return Json(resultState);
             }
 
@@ -103,13 +103,14 @@ namespace TestApp.Controllers
             catch (Exception e)
             {
                 resultState.IsSuccess = false;
-                resultState.MessageHeader = "Ошибка удаления";
-                resultState.MessageText = e.Message;
+                resultState.MessageHeader = "Удаление записи";
+                resultState.MessageText   = $"Ошибка: {e.Message}";
                 return Json(resultState);
             }           
 
             resultState.IsSuccess = true;
-            resultState.MessageHeader = "Запись успешно удалена";
+            resultState.MessageHeader = "Удаление записи";
+            resultState.MessageText   = "Запись успешно удалена";
             return Json(resultState);
         }
 
@@ -162,13 +163,13 @@ namespace TestApp.Controllers
             {
                 resultState.IsSuccess = false;
                 resultState.MessageHeader = "Ошибка Сохранения";
-                resultState.MessageText = e.Message;
+                resultState.MessageText   = e.Message;
                 return Json(resultState);
             }
 
             resultState.IsSuccess = true;
             resultState.MessageHeader = "Изменение записи";
-            resultState.MessageText = "Изменения успешно сохранены";
+            resultState.MessageText   = "Изменения успешно сохранены";
             return Json(resultState);
         }
 
@@ -190,8 +191,21 @@ namespace TestApp.Controllers
              
                 string jsonString = fileLoader.GetTextData();
 
+                List<Employee> employees = new List<Employee>();
+
                 JavaScriptSerializer serializer = new JavaScriptSerializer();
-                List<Employee> employees = serializer.Deserialize<List<Employee>>(jsonString);
+                try
+                {
+                    employees = serializer.Deserialize<List<Employee>>(jsonString);
+                }
+                catch (Exception exp)
+                {
+                    resultState.IsSuccess = false;
+                    resultState.MessageHeader = "Загрузка файла";
+                    resultState.MessageText = $"Ошибка при загрузке: {exp.Message}";
+
+                    return Json(resultState);
+                }
 
                 loadingResult = SaveEmployeeFromList(employees);
             }

@@ -18,7 +18,7 @@ namespace TestApp.DAL
                     PersonnelID = Convert.ToString(i),
                     EmployeeFullName = $"Employee_{i}",
                     //DateOfBirth = Convert.ToString(DateTime.Now.AddYears(-20)),
-                    DateOfBirth = DateTime.Now.AddYears(-20),
+                    DateOfBirth = DateTime.Now.AddYears(-20 - i),
                     Gender = "male",
                     IsStaffMember = true
                 };

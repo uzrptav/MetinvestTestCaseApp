@@ -1,10 +1,9 @@
 [
    {
-      "EmployeeID":17,
       "PersonnelID":1123,
       "EmployeeFullName":"Employee_1",
       "Gender":null,
-      "DateOfBirth":'25.25.2025',
+      "DateOfBirth": "2025-01-01",
       "IsStaffMember":true
    },
    {
@@ -14,7 +13,6 @@
       "IsStaffMember":true
    },
    {
-      "EmployeeID":22,
       "PersonnelID":324,
       "EmployeeFullName":"adadas",
       "Gender":null,
