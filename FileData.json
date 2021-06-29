@@ -8,8 +8,6 @@
       "IsStaffMember":true
    },
    {
-      "EmployeeID":21333,
-      "PersonnelID":2233,
       "EmployeeFullName":"adasda",
       "Gender":null,
       "DateOfBirth":null,

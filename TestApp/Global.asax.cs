@@ -20,7 +20,7 @@ namespace TestApp
             BundleConfig.RegisterBundles(BundleTable.Bundles);
 
             //TODO move to Global.asax file
-            Database.SetInitializer<EmployeeContext>(new DropCreateDatabaseAlways<EmployeeContext>());
+            Database.SetInitializer<EmployeeDBContext>(new DropCreateDatabaseAlways<EmployeeDBContext>());
         }
     }
 }

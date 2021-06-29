@@ -127,9 +127,12 @@
     <Compile Include="Helpers\FileLoader.cs" />
     <Compile Include="Helpers\JSONHelper.cs" />
     <Compile Include="Models\Employee.cs" />
-    <Compile Include="Models\EmployeeContext.cs" />
-    <Compile Include="Models\FormattedDbEntityValidationException.cs" />
+    <Compile Include="Models\EmployeeDBContext.cs" />
+    <Compile Include="Models\EmployeeDBInitializer.cs" />
+    <Compile Include="Models\Exceptions\FormattedDbEntityValidationException.cs" />
+    <Compile Include="Models\Exceptions\FormattedDbUpdateException.cs" />
     <Compile Include="Models\LoadingResult.cs" />
+    <Compile Include="Models\ResultState.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

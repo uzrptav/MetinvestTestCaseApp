@@ -70,9 +70,6 @@ namespace TestApp.Controllers
         {
             // получаем из бд все объекты Employee
             IEnumerable<Employee> employees = context.Employees;
-            // передаем все объекты в динамическое свойство Employees в ViewBag
-            //ViewBag.Employees = employees;
-            //
 
             // возвращаем представление
             return Content(JsonConvert.SerializeObject(employees), "application/json");
@@ -86,13 +83,33 @@ namespace TestApp.Controllers
         [HttpPost]
         public ActionResult RemoveEmployee(int id = 0)
         {
-            var employee = context.Employees.Where(t => t.EmployeeID == id).First();
-            context.Entry(employee).State = EntityState.Deleted;
-            context.SaveChanges();
-
             ResultState resultState = new ResultState();
+
+            var employee = context.Employees.Where(t => t.EmployeeID == id).FirstOrDefault();
+
+            if (employee == null)
+            {
+                resultState.IsSuccess = true;
+                resultState.MessageHeader = "Ошибка удаления";
+                resultState.MessageText = "Запись не найдена";
+                return Json(resultState);
+            }
+
+            context.Entry(employee).State = EntityState.Deleted;
+            try
+            {
+                context.SaveChanges();
+            }
+            catch (Exception e)
+            {
+                resultState.IsSuccess = false;
+                resultState.MessageHeader = "Ошибка удаления";
+                resultState.MessageText = e.Message;
+                return Json(resultState);
+            }           
+
             resultState.IsSuccess = true;
-            resultState.Message = "Success";
+            resultState.MessageHeader = "Запись успешно удалена";
             return Json(resultState);
         }
 
@@ -114,17 +131,15 @@ namespace TestApp.Controllers
             {
                 context.SaveChanges();
                 resultState.IsSuccess = true;
-                resultState.Message = "Success";
+                resultState.MessageHeader = "Создание новой записи";
+                resultState.MessageText   = "Данные успешно сохранены";
             }
             else
             {
                 resultState.IsSuccess = false;
-                resultState.Message = report;
+                resultState.MessageHeader = "Ошибка правил валидации";
+                resultState.MessageText = report;
             }
-            
-
-            
-            
             return Json(resultState);
         }
 
@@ -135,17 +150,25 @@ namespace TestApp.Controllers
         /// <returns></returns>
         public ActionResult EditEmployee(Employee employee)
         {
-            //TODO save edited item
-            //var employee = context.Employees.Where(t => t.EmployeeID == id).First();
+            ResultState resultState = new ResultState();
 
             context.Entry(employee).State = EntityState.Modified;
-            context.SaveChanges();
 
-            //return Content("Success");            
+            try
+            {
+                context.SaveChanges();
+            }
+            catch (Exception e)
+            {
+                resultState.IsSuccess = false;
+                resultState.MessageHeader = "Ошибка Сохранения";
+                resultState.MessageText = e.Message;
+                return Json(resultState);
+            }
 
-            ResultState resultState = new ResultState();
             resultState.IsSuccess = true;
-            resultState.Message = "Success";
+            resultState.MessageHeader = "Изменение записи";
+            resultState.MessageText = "Изменения успешно сохранены";
             return Json(resultState);
         }
 
@@ -155,6 +178,8 @@ namespace TestApp.Controllers
         /// <returns></returns>
         public ActionResult UploadFile()
         {
+            ResultState resultState = new ResultState();
+
             string loadingResult = String.Empty;
             for (int i = 0; i < Request.Files.Count; i++)
             {
@@ -168,10 +193,15 @@ namespace TestApp.Controllers
                 JavaScriptSerializer serializer = new JavaScriptSerializer();
                 List<Employee> employees = serializer.Deserialize<List<Employee>>(jsonString);
 
-                loadingResult = SaveEmployeeFromList(employees);               
-
+                loadingResult = SaveEmployeeFromList(employees);
             }
-            return Content(loadingResult);
+
+            resultState.IsSuccess = true;
+            resultState.MessageHeader = "Загрузка файла";
+            resultState.MessageText   = "Детали выполнения смотрите в журнале";
+            resultState.ResponseBody  = loadingResult;
+
+            return Json(resultState);
         }
 
 
@@ -221,13 +251,6 @@ namespace TestApp.Controllers
             }
 
             return loadingResults.ToJSON();
-            //context.SaveChanges();
         }
-    }
-
-    public class ResultState
-    {
-        public bool IsSuccess { get; set; }
-        public string Message { get; set; }
     }
 }

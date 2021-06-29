@@ -14,18 +14,36 @@
                         cache: false,
                         dataType: 'html',
                         data: { id: row.EmployeeID },
-                        success: function (data) {
-                            if (data == "Success") {
-                                $("#dg").datagrid('reload');
-                                /* $.messager.alert('Success', data, 'info');*/
+                        success: function (result) {
+                            var result = eval('(' + result + ')');
+
+                            if (!result.IsSuccess) {
+                                $.messager.show({
+                                    title: result.MessageHeader,
+                                    msg: result.MessageText
+                                });
                             }
-                            else $.messager.alert('Error', 'Error！', 'info');
+                            else {
+                                $.messager.show({
+                                    title: result.MessageHeader,
+                                    msg: result.MessageText
+                                });
+                                $('#dlg').dialog('close');        // close the dialog
+                                $('#dg').datagrid('reload');    // reload the user data
+
+                            }
                         },
                         error: function (XMLHttpRequest, textStatus, errorThrown) {
                             alert(textStatus); return;
                         }
                     });
                 }
+            });
+        }
+        else {
+            $.messager.show({
+                title: "Удаление записи",
+                msg: "Необходимо выбрать строку для удаления"
             });
         }
     }
@@ -122,7 +140,7 @@
 
 
 
-<div id="dlgJsonFile" class="easyui-dialog" style="width:400px;height:320px;padding:10px 20px"
+<div id="dlgJsonFile" class="easyui-dialog" style="width:400px;height:320px;padding:10px 20px;"
      closed="true" buttons="#dlg-buttons">
 
     @*<form id="upload" enctype="multipart/form-data" action="@Url.Action("UploadFile", "Employee")" method="POST">
@@ -195,28 +213,6 @@
                 params.DateOfBirth = param.DateOfBirth;
                 params.IsStaffMember = param.IsStaffMember;
 
-
-                //$.ajax({
-                //    url: url,
-                //    type: this.method,
-                //    data: new FormData(this),
-                //    cache: false,
-                //    contentType: false,
-                //    processData: false,
-                //    success: function (data) {
-                //        console.log(data.UploadedFileCount + ' ajax called successfully');
-                //        console.log('params.EmployeeFullName = ' + params.EmployeeFullName);
-                //        $('#dlg').dialog('close');        // close the dialog
-                //        $('#dg').datagrid('reload');    // reload the user data
-                //    },
-                //    error: function (xhr, error, status) {
-                //        $('#dlg').
-                //        console.log(error, status);
-                //    }
-                //});
-
-
-
                 console.log('employeeId = ' + employeeId + ' url = ' + url);
 
                 return $(this).form('validate');
@@ -226,12 +222,16 @@
                 console.log('result = ' + result);
 
                 var result = eval('(' + result + ')');
-                if (result.errorMsg) {
+                if (!result.IsSuccess) {
                     $.messager.show({
-                        title: 'Error',
-                        msg: result.errorMsg
+                        title: result.MessageHeader,
+                        msg: result.MessageText
                     });
                 } else {
+                    $.messager.show({
+                        title: result.MessageHeader,
+                        msg: result.MessageText
+                    });
                     $('#dlg').dialog('close');        // close the dialog
                     $('#dg').datagrid('reload');    // reload the user data
                 }
@@ -299,43 +299,43 @@
                 processData: false,
                 contentType: false,
                 data: formData,
-                success: function (json) {
+                success: function (result) {
 
                     console.log(' ajax called successfully');
-                    console.log('json = ' + json);
+                    console.log('json result = ' + result);
 
                     $('#dg').datagrid('reload');            // reload the user data
 
-                    $.messager.alert('Success', 'File uploaded, data loaded!', 'info');
+                    //var resultObj = eval('(' + result + ')');
 
+                    console.log('result Obj = ' + result);
+                   
+
+                    if (typeof result.IsSuccess !== 'undefined' ) {
+
+                        console.log('result.IsSuccess is not undefined');
+
+                        console.log('result.MessageHeader = ' + result.MessageHeader);
+                        console.log('result.MessageText = ' + result.MessageText);
+                        
+                            $.messager.show({
+                                title: result.MessageHeader,
+                                msg: result.MessageText
+                            });                        
+
+
+                    }
+                    
                     //Fill log to grid
-                    $('#dgFileLoadingResult').datagrid('loadData', JSON.parse(json));
+                    if (typeof result.ResponseBody !== 'undefined') {
+                        //Show grid with result
 
-                    //Convert JSON Array to string.
-                    var jsonStr = JSON.stringify(json);
-
-                    //Convert JSON string to BLOB.
-                    jsonStr = [jsonStr];
-                    var blob1 = new Blob(jsonStr, { type: "text/plain;charset=utf-8" });
-
-                    //Check the Browser.
-                    var isIE = false || !!document.documentMode;
-                    if (isIE) {
-                        window.navigator.msSaveBlob(blob1, "Customers.txt");
-                    } else {
-                        var url = window.URL || window.webkitURL;
-                        link = url.createObjectURL(blob1);
-                        var a = $("<a />");
-                        a.attr("download", "LoadFromFileInfo.txt");
-                        a.attr("href", link);
-                        $("body").append(a);
-                        a[0].click();
-                        $("body").remove(a);
+                        $('#dgFileLoadingResult').datagrid('loadData', JSON.parse(result.ResponseBody));
                     }
 
                 },
                 error: function (xhr, status, error) {
-                    $.messager.alert("Tips", "operation failed"); //xhr.responseText
+                    $.messager.alert("Error", "operation failed"); //xhr.responseText
                 }
             });
         }
@@ -344,49 +344,47 @@
 
 
 
-<table id="dgFileLoadingResult" title="Loading result" class="easyui-datagrid"
-       fitColumns="true"
-       rownumbers="true"
-       toolbar ="#tbFileLoadingResult"
-       singleSelect="true"
-       >
-    <thead>
-        <tr>
-            <th data-options="field:'Entity',width:120">Employee data</th>
-            <th data-options="field:'AlreadyExists',width:60">Record alredy exists</th>
-            <th data-options="field:'ErrorMessage',width:120,align:'right'">Error message</th>          
-        </tr>
-    </thead>
-</table>
+    <table id="dgFileLoadingResult" title="Loading result" class="easyui-datagrid"
+           
+           fitColumns="true"
+           rownumbers="true"
+           toolbar="#tbFileLoadingResult"
+           singleSelect="true">
+        <thead>
+            <tr>
+                <th data-options="field:'Entity',width:120">Employee data</th>
+                <th data-options="field:'AlreadyExists',width:60">Record alredy exists</th>
+                <th data-options="field:'ErrorMessage',width:120,align:'right'">Error message</th>
+            </tr>
+        </thead>
+    </table>
 
-<div id="tbFileLoadingResult">
-    <a href="#" class="easyui-linkbutton" iconCls="icon-save" plain="true" onclick="saveLoadingResult()">Save to xls</a>
-</div>
-
-<script>
-
-
-    function saveLoadingResult() {
-
-        $('#dgFileLoadingResult').datagrid('toExcel', 'datagrid.xls');
-    }
-</script>>
-
-@*<div id="tb" style="padding:5px;height:auto">
-    <div style="margin-bottom:5px">
-        <a href="#" class="easyui-linkbutton" iconCls="icon-add" plain="true"></a>
-        <a href="#" class="easyui-linkbutton" iconCls="icon-edit" plain="true"></a>
-        <a href="#" class="easyui-linkbutton" iconCls="icon-save" plain="true"></a>
-        <a href="#" class="easyui-linkbutton" iconCls="icon-cut" plain="true"></a>
-        <a href="#" class="easyui-linkbutton" iconCls="icon-remove" plain="true"></a>
+    <div id="tbFileLoadingResult">
+        <a href="#" class="easyui-linkbutton" iconCls="icon-save" plain="true" onclick="saveLoadingResult()">Save to xls</a>
     </div>
-    <div>
-        Date From: <input class="easyui-datebox" style="width:80px">
-        To: <input class="easyui-datebox" style="width:80px">
-        Language:
-        <input class="easyui-combobox" style="width:100px"
-               url="data/combobox_data.json"
-               valueField="id" textField="text">
-        <a href="#" class="easyui-linkbutton" iconCls="icon-search">Search</a>
-    </div>
-</div>*@
+
+    <script>
+        function saveLoadingResult() {
+
+            $('#dgFileLoadingResult').datagrid('toExcel', 'datagrid.xls');
+        }
+    </script>
+
+    @*<div id="tb" style="padding:5px;height:auto">
+            <div style="margin-bottom:5px">
+                <a href="#" class="easyui-linkbutton" iconCls="icon-add" plain="true"></a>
+                <a href="#" class="easyui-linkbutton" iconCls="icon-edit" plain="true"></a>
+                <a href="#" class="easyui-linkbutton" iconCls="icon-save" plain="true"></a>
+                <a href="#" class="easyui-linkbutton" iconCls="icon-cut" plain="true"></a>
+                <a href="#" class="easyui-linkbutton" iconCls="icon-remove" plain="true"></a>
+            </div>
+            <div>
+                Date From: <input class="easyui-datebox" style="width:80px">
+                To: <input class="easyui-datebox" style="width:80px">
+                Language:
+                <input class="easyui-combobox" style="width:100px"
+                       url="data/combobox_data.json"
+                       valueField="id" textField="text">
+                <a href="#" class="easyui-linkbutton" iconCls="icon-search">Search</a>
+            </div>
+        </div>*@
