@@ -7,6 +7,7 @@ using System.Web.Mvc;
 using System.Web.Optimization;
 using System.Web.Routing;
 using TestApp.DAL;
+using TestApp.Models.Validators;
 
 namespace TestApp
 {
@@ -14,10 +15,16 @@ namespace TestApp
     {
         protected void Application_Start()
         {
+
+            //Register our validation Provider
+            ModelValidatorProviders.Providers.Add(new EmployeeModelValidatorProvider());
+
             AreaRegistration.RegisterAllAreas();
             FilterConfig.RegisterGlobalFilters(GlobalFilters.Filters);
             RouteConfig.RegisterRoutes(RouteTable.Routes);
             BundleConfig.RegisterBundles(BundleTable.Bundles);
+
+
         }
     }
 }

@@ -14,6 +14,7 @@ using System.Web.Script.Serialization;
 using TestApp.DAL;
 using TestApp.Helpers;
 using TestApp.Models;
+using TestApp.Models.Validators;
 
 namespace TestApp.Controllers
 {
@@ -21,28 +22,6 @@ namespace TestApp.Controllers
     {
 
         EmployeeDBContext context = new EmployeeDBContext();
-
-        public EmployeeController()
-        {
-            //if (context.Employees.Any())
-            //    return;
-
-            ////Populate Employee table
-            //for (int i = 1; i < 5; i++)
-            //{
-            //    var emp = new Employee
-            //    {
-            //        PersonnelID = Convert.ToString(i),
-            //        EmployeeFullName = $"Employee_{i}",
-            //        DateOfBirth = Convert.ToString( DateTime.Now.AddYears(-20) ),
-            //        Gender = "male",
-            //        IsStaffMember = true
-            //    };
-
-            //    context.Employees.Add(emp);
-            //    context.SaveChanges();
-            //}
-        }
 
         /// <summary>
         /// Retrieve Employee collection or concrete entity
@@ -119,17 +98,24 @@ namespace TestApp.Controllers
         /// </summary>
         /// <param name="employee">New Employee entity</param>
         /// <returns></returns>
-        public ActionResult SaveEmployee(Employee employee)
+        public ActionResult SaveEmployee([Bind(Exclude = "EmployeeID")] Employee employee)
         {
-            //TODO save new item
-            ResultState resultState = new ResultState();
+            //TODO save new item          
+            ResultState resultState = new ResultState();            
 
-            context.Entry(employee).State = EntityState.Added;
+            string validationReport = String.Empty;
+            
+            bool isValidated = this.TryValidateModel(employee);
 
-            string report = employee.GetValidateReport();
-
-            if (String.IsNullOrEmpty(report) )
+            if (!isValidated)
             {
+                validationReport = GetValidationMessages(ModelState);
+            }
+
+            if (isValidated)
+            {
+                context.Entry(employee).State = EntityState.Added;
+
                 context.SaveChanges();
                 resultState.IsSuccess = true;
                 resultState.MessageHeader = "Создание новой записи";
@@ -139,7 +125,7 @@ namespace TestApp.Controllers
             {
                 resultState.IsSuccess = false;
                 resultState.MessageHeader = "Ошибка правил валидации";
-                resultState.MessageText = report;
+                resultState.MessageText = validationReport;
             }
             return Json(resultState);
         }
@@ -151,12 +137,32 @@ namespace TestApp.Controllers
         /// <returns></returns>
         public ActionResult EditEmployee(Employee employee)
         {
-            ResultState resultState = new ResultState();
+            ResultState resultState = new ResultState();            
 
-            context.Entry(employee).State = EntityState.Modified;
+            string validationReport = String.Empty;
+
+            bool isValidated = ModelState.IsValid;
+
+            if (isValidated)
+            {
+                resultState.IsSuccess = true;
+                resultState.MessageHeader = "Изменение записи";
+                resultState.MessageText = "Изменения успешно сохранены";                
+            }
+            else
+            {
+                validationReport = GetValidationMessages(ModelState);
+
+                resultState.IsSuccess = false;
+                resultState.MessageHeader = "Ошибка Сохранения";
+                resultState.MessageText = validationReport;
+                return Json(resultState);
+            }
 
             try
             {
+                context.Entry(employee).State = EntityState.Modified;
+
                 context.SaveChanges();
             }
             catch (Exception e)
@@ -167,9 +173,6 @@ namespace TestApp.Controllers
                 return Json(resultState);
             }
 
-            resultState.IsSuccess = true;
-            resultState.MessageHeader = "Изменение записи";
-            resultState.MessageText   = "Изменения успешно сохранены";
             return Json(resultState);
         }
 
@@ -185,8 +188,8 @@ namespace TestApp.Controllers
             for (int i = 0; i < Request.Files.Count; i++)
             {
                 var file = Request.Files[i];
-                //TODO save file here or read InputStream
 
+                //TODO save file here or read InputStream
                 FileLoader fileLoader = new FileLoader(file.InputStream, file.ContentLength);
              
                 string jsonString = fileLoader.GetTextData();
@@ -225,14 +228,19 @@ namespace TestApp.Controllers
         /// <param name="employees">Employee collection</param>
         private string SaveEmployeeFromList(List<Employee> employees)
         {
-            //TODO Move to Repository
-            List<LoadingResult> loadingResults = new List<LoadingResult>();
-            StringBuilder sb = new StringBuilder();
+            List<LoadingResult> loadingResults = new List<LoadingResult>();           
 
             foreach (var emp in employees)
             {
                 bool alreadyExists = false;
-                string report = emp.GetValidateReport();
+                string validationReport = String.Empty;
+
+                //Clear previous validation errors
+                ModelState.Clear();
+
+                bool isValidated = this.TryValidateModel(emp);
+   
+              
                 var existedEntity = context.Employees
                     .Where(t => t.PersonnelID == emp.PersonnelID
                                 && t.IsStaffMember == emp.IsStaffMember
@@ -246,25 +254,47 @@ namespace TestApp.Controllers
                     context.Entry(existedEntity).State = EntityState.Modified;
                 }
 
-                if (String.IsNullOrEmpty(report))
+                if (isValidated)
                 {
                     if (!alreadyExists)
                     { context.Employees.Add(emp); }
 
                     context.SaveChanges();
                 }
+                else
+                {
+                    validationReport = GetValidationMessages(ModelState);
+                }
 
                 LoadingResult result = new LoadingResult
                 {
                     Entity = $"{emp.PersonnelID}|{emp.EmployeeFullName}|{emp.DateOfBirth}|{emp.Gender}|{emp.IsStaffMember}|",
                     AlreadyExists = alreadyExists,
-                    ErrorMessage = report
+                    ErrorMessage = validationReport
                 };
 
-                loadingResults.Add(result);
+                loadingResults.Add(result);               
             }
 
             return loadingResults.ToJSON();
+        }
+
+        private string GetValidationMessages(ModelStateDictionary controllerModelState)
+        {
+            StringBuilder sbErr = new StringBuilder();
+
+            //Get errors from ModelState
+            foreach (KeyValuePair<string, ModelState> kvp in controllerModelState)
+            {
+                var modelState = kvp.Value;
+
+                foreach (var error in modelState.Errors)
+                {
+                    sbErr.AppendLine($"{ kvp.Key} : { error.ErrorMessage} ");
+                }
+            }
+
+            return sbErr.ToString();
         }
     }
 }
