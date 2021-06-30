@@ -133,7 +133,6 @@
     <Compile Include="Models\Exceptions\FormattedDbUpdateException.cs" />
     <Compile Include="Models\LoadingResult.cs" />
     <Compile Include="Models\ResultState.cs" />
-    <Compile Include="Models\ValidationReport.cs" />
     <Compile Include="Models\Validators\EmployeeModelValidator.cs" />
     <Compile Include="Models\Validators\EmployeeModelValidatorProvider.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
